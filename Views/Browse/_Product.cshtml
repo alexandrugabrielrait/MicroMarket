@@ -1,0 +1,19 @@
+﻿@model Product
+@*<tr>
+    <td>
+    <a href=@Url.Action("Index", "Product", new { id = Model.Id })>Product id @Model.Id</a> is: @Model.Name.
+    </td>
+    <td>
+    Costs $@Model.Price
+    </td>
+    <td>
+    Type @Model.ProductTypeId
+    </td>
+</tr>*@
+<div class="card">
+  @*<img src="jeans3.jpg" alt="Denim Jeans" style="width:100%">*@
+  <strong>@Model.Name</strong>
+  <p class="price">@Model.Price.ToString("0.####")€</p>
+  <div class="description">@Model.Description</div>
+  <div><button type="button" class="btn btn-success" onclick="addProduct(@Model.ProductId)">Add to Cart</button></div>
+</div>

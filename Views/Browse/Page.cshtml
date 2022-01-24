@@ -1,0 +1,85 @@
+﻿@model List<Product>
+@{
+    ViewData[":-moz-anyitle"] = "Home Page";
+}
+
+<style>
+   .card-container {
+       display: flex;
+       flex-wrap: wrap;
+       background-color: #ffffff;
+       justify-content: flex-start;
+       align-self: center;
+       width: 100%;
+    }
+
+    .card {
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        width: 250px;
+        align-self: flex-start;
+        text-align: center;
+        font-family: arial;
+        margin-bottom: 5px;
+    }
+
+    .price {
+        color: grey;
+        font-size: 22px;
+    }
+
+    .card .description {
+        height: 50px;
+    }
+
+    .card button {
+        display: block;
+        border: none;
+        outline: 0;
+        color: white;
+        text-align: center;
+        cursor: pointer;
+        width: 100%;
+        font-size: 18px;
+        margin-top: 10px;
+        height: 100%;
+    }
+
+    .card button:hover {
+        opacity: 0.7;
+    }
+</style>
+<div class="text-center" id="card_container">
+    <div class="alert alert-success" id="success-alert" style="position:absolute; align-self:center">
+        <strong>Success!</strong> The product has added to your cart.
+    </div>
+    <h1 class="display-4">Browse Products</h1>
+    <div class="card-container">
+        @foreach (var product in Model)
+        {
+            Html.RenderPartial("_product", product);
+        }
+    </div>
+    <br />
+    @if (ViewBag.HTMLId > 0)
+    {
+        <button type="button" onclick="location.href='@Url.Action("Page", "Browse", new { id = ViewBag.HTMLId - 1 })'">Previous Page</button>
+    }
+    @if (ViewBag.HTMLId < ViewBag.LastPageId)
+    {
+        <button type="button" onclick="location.href='@Url.Action("Page", "Browse", new { id = ViewBag.HTMLId + 1 })'">Next Page</button>
+    }
+</div>
+<script>
+    $(document).ready(function() {
+    $("#success-alert").hide();
+      });
+      function addProduct(id) {
+      $.post("@(Url.ActionLink("AddProduct", "Cart"))/" + id, function() {})
+      .done(function(data) {
+          setCartCount(data.count);
+      $("#success-alert").fadeTo(2000, 500).slideUp(300, function() {
+          $("#success-alert").slideUp(300);
+      });
+      });
+      }
+</script>

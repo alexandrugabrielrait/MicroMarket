@@ -1,0 +1,64 @@
+﻿@model List<CartItem>
+@{
+    ViewData["Title"] = "Home Page";
+
+    decimal totalPrice = 0;
+    if (Model != null)
+        foreach (var cartItem in Model)
+            totalPrice += cartItem.Quantity * cartItem.Product.Price;
+}
+<style>
+    .cart-item-table {
+        width: 100%;
+    }
+
+    .checkout {
+        text-align: center;
+    }
+
+    .checkout button {
+        width: 25%;
+    }
+</style>
+@if (Model != null)
+{
+    <form method="post" action="@Url.Action("Checkout", "Cart")">
+    <table class="cart-item-table">
+        @foreach (var cartItem in Model)
+        {
+            Html.RenderPartial("_cartItem", cartItem);
+        }
+    </table>
+    <br />
+    <div class="checkout">
+        <div>Total: @totalPrice.ToString("0.####")€</div>
+        <button type="submit" class="btn btn-primary">Checkout</button>
+    </div>
+    </form>
+}
+else
+{
+    <p>The cart is empty! <a href="@Url.Action("Page", "Browse")">Click here to browse products.</a></p>
+}
+<script>
+    $(document).ready(function() {
+      $("#success-alert").hide();
+        });
+      function removeProduct(id) {
+        $.post("@(Url.ActionLink("RemoveProduct", "Cart"))/" + id, function() {})
+        .done(function(data) {
+          setCartCount(data.count);
+          $("#cart_item_" + id).remove();
+      });
+      }
+      $(".cart_item_quantity").on('input', function() {
+        val = $(this).val();
+        id = $(this).attr("product-id");
+        $.post("@(Url.ActionLink("SetProductQuantity", "Cart"))/" + id + "?quantity=" + val, function() {})
+      .done(function(data) {
+          setCartCount(data.count);
+          $("#cart_item_" + id + "_total").text(data.productPrice);
+          $("this").val(data.quantity);
+      });
+    });
+</script>
