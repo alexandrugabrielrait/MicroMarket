@@ -1,5 +1,0 @@
-FROM mcr.microsoft.com/mssql/server:2019-latest
-COPY ./db-scripts.sql .
-ENV ACCEPT_EULA Y
-ENV sa_password DBpass1434
-RUN /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P DBpass1434 -d master -i db-scripts.sql

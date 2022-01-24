@@ -1,0 +1,15 @@
+﻿@model List<string>
+@{
+    ViewData["Title"] = "Error";
+}
+
+<h2 class="text-danger">Errors have occurred while processing your request.</h2>
+
+<p>
+    @foreach (var errorMessage in Model)
+    {
+        <div>
+            <strong>Error: @errorMessage</strong>
+        </div>
+    }
+</p>

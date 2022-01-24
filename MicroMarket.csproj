@@ -15,6 +15,8 @@
     <None Remove="hibernate.cfg.xml" />
     <None Remove="NHibernateDB\Product.hbm.xml" />
     <None Remove="NHibernateDB\ProductType.hbm.xml" />
+    <None Remove="NHibernateDB\Transaction.hbm.xml" />
+    <None Remove="NHibernateDB\TransactionProduct.hbm.xml" />
     <None Remove="NHibernateDB\UserInfo.hbm.xml" />
   </ItemGroup>
 
@@ -25,6 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="NHibernateDB\TransactionProduct.hbm.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NHibernateDB\Transaction.hbm.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="NHibernateDB\UserInfo.hbm.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>

@@ -4,6 +4,6 @@
     {
         public Object Get(Type repoType);
 
-        public bool AddUser(string username);
+        public Guid AddUser(string username);
     }
 }

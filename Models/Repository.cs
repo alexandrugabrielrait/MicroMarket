@@ -13,7 +13,14 @@ namespace MicroMarket.Models
         {
             var session = GetSession();
             session.Save(entity);
-            session.Flush();
+            try
+            {
+                session.Flush();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public T Get(int id)

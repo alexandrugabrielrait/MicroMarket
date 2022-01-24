@@ -30,11 +30,6 @@ namespace MicroMarket.Controllers
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
             return View(cart);
         }
-        public IActionResult AddUser(string email)
-        {
-            _repositoryManager.AddUser(email);
-            return Index();
-        }
 
         public int IndexOfProduct(int id)
         {
@@ -133,25 +128,37 @@ namespace MicroMarket.Controllers
         public IActionResult Checkout()
         {
             RefreshCartProducts();
-            var errorMessage = "";
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
+            var errorMessages = new List<string>();
             foreach (var cartItem in cart)
             {
                 if (cartItem.Product.Stock < cartItem.Quantity)
                 {
-                    errorMessage = "Error: Insufficient stock for " + cartItem.Product.Name + "!";
-                    SessionHelper.SetObjectAsJson(HttpContext.Session, "errorMessage", errorMessage);
-                    return Index();
+                    errorMessages.Add("Insufficient stock for product \"" + cartItem.Product.Name + "\"!");
                 }
             }
-            if(_signInManager.IsSignedIn(User) && User.Identity != null)
+            if (!_signInManager.IsSignedIn(User))
             {
-                _repositoryManager.AddUser(User.Identity.Name);
-                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", new List<CartItem>());
-                return Index();
+                errorMessages.Add("Not logged in!");
             }
-            errorMessage = "Error: Not logged in!";
-            SessionHelper.SetObjectAsJson(HttpContext.Session, "errorMessage", errorMessage);
+
+            if (errorMessages.Count > 0)
+                return View("CustomError", errorMessages);
+
+            var userId = _repositoryManager.AddUser(User.Identity.Name);
+            var transactionId = Guid.NewGuid();
+            var transaction = new Transaction()
+            {
+                UserId = userId,
+                TransactionId = transactionId,
+                TransactionTime = DateTime.Now
+            };
+            ((IRepository<Transaction>)_repositoryManager.Get(typeof(Transaction))).Save(transaction);
+            foreach (var cartItem in cart)
+            {
+                ((IRepository<TransactionProduct>)_repositoryManager.Get(typeof(TransactionProduct))).Save(new TransactionProduct(transactionId, cartItem));
+            }
+            SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", new List<CartItem>());
             return Index();
         }
 

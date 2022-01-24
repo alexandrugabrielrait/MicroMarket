@@ -18,7 +18,8 @@ VALUES
 (1, 'Wires'),
 (2, 'Circuit Component'),
 (3, 'Buttons'),
-(4, 'Displays')
+(4, 'Displays'),
+(5, 'Breadboard')
 GO
 
 CREATE TABLE Products
@@ -38,12 +39,13 @@ GO
 
 INSERT INTO Products
 VALUES
-(1, 'PLACĂ DEZVOLTARE ALTERA DEO-NANO P0082', 32.3, 0, 100, 'https://cleste.ro/6794-superlarge_default/placa-dezvoltare-altera-deo-nano-p0082.jpg', N'P0082 (Terasic) este o placă de dezvoltare DE0-Nano este o platformă de dezvoltare FPGA de dimensiuni compacte, potrivită pentru proiectarea circuitelor de prototipare, cum ar fi roboți și proiecte „portabile”.'),
-(2, 'Resistor', 44.3, 2, 50, NULL, NULL),
-(3, 'Wire', 1, 1, 5, NULL, 'Some wires'),
-(4, 'PLACĂ DEZVOLTARE NUCLEO-L010RB', 5, 0, 3, 'https://cleste.ro/7934-superlarge_default/placa-dezvoltare-nucleo-l010rb.jpg', N'Placa de dezvoltare STM32 Nucleo-64 cu STM32L010RB MCU acceptă conectivitatea morpho Arduino și ST.'),
-(5, '10 X FIRE DUPONT MAMA-TATA 10CM', 1, 0, 1000, 'https://cleste.ro/1875-superlarge_default/10-x-fire-dupont-mama-tata-10cm.jpg', N'10 x fire mamă-tată de 10 cm, ideale pentru a conecta rapid module la plăcile de dezvoltare.'),
-(6, '10 X FIRE DUPONT TATA-TATA 30CM', 1, 0, 1000, 'https://cleste.ro/381-superlarge_default/10xfire-dupont-tata-tata-30cm.jpg', N'10 x fire tata-tata de 30 cm, ideale pentru a conecta rapid module la plăcile de dezvoltare.')
+(1, 'PLACĂ DEZVOLTARE ALTERA DEO-NANO P0082', 32.3, 0, 1, 'https://cleste.ro/6794-superlarge_default/placa-dezvoltare-altera-deo-nano-p0082.jpg', N'P0082 (Terasic) este o placă de dezvoltare DE0-Nano este o platformă de dezvoltare FPGA de dimensiuni compacte, potrivită pentru proiectarea circuitelor de prototipare, cum ar fi roboți și proiecte „portabile”.'),
+(2, 'BREADBOARD 400 PUNCTE', 9, 5, 2, 'https://cleste.ro/160-superlarge_default/breadboard-400-puncte.jpg', N'Breadboard-ul este folosit în general pentru realizarea rapidă a montajelor fără a fi nevoie de lipirea firelor, pentru testarea proiectelor.'),
+(3, 'DISPLAY WTVGA MAXTOUCH DE 4,3 \"', 600, 4, 3, 'https://cleste.ro/7910-superlarge_default/display-wtvga-maxtouch-de-4-3.jpg', N'Producător de siliciu :Microchip'),
+(4, 'PLACĂ DEZVOLTARE NUCLEO-L010RB', 5, 0, 4, 'https://cleste.ro/7934-superlarge_default/placa-dezvoltare-nucleo-l010rb.jpg', N'Placa de dezvoltare STM32 Nucleo-64 cu STM32L010RB MCU acceptă conectivitatea morpho Arduino și ST.'),
+(5, '10 X FIRE DUPONT MAMA-TATA 10CM', 1, 1, 5, 'https://cleste.ro/1875-superlarge_default/10-x-fire-dupont-mama-tata-10cm.jpg', N'10 x fire mamă-tată de 10 cm, ideale pentru a conecta rapid module la plăcile de dezvoltare.'),
+(6, '10 X FIRE DUPONT TATA-TATA 30CM', 1, 1, 6, 'https://cleste.ro/381-superlarge_default/10xfire-dupont-tata-tata-30cm.jpg', N'10 x fire tata-tata de 30 cm, ideale pentru a conecta rapid module la plăcile de dezvoltare.'),
+(7, 'BREADBOARD MINI 170 PUNCTE', 3, 5, 7, 'https://cleste.ro/11859-superlarge_default/breadboard-mini-170-puncte.jpg', N'Breadboard-ul este folosit în general pentru realizarea rapidă a montajelor fără a fi nevoie de lipirea firelor, pentru testarea proiectelor.')
 GO
 
 CREATE FUNCTION IsValidEmail(@Email varchar(255)) RETURNS BIT
@@ -75,7 +77,7 @@ GO
 
 CREATE TABLE Transactions
 (
-	TransactionId INT NOT NULL IDENTITY(1,1),
+	TransactionId UNIQUEIDENTIFIER NOT NULL,
     UserId UNIQUEIDENTIFIER NOT NULL,
 	TransactionTime DATETIME NOT NULL,
     PRIMARY KEY (TransactionId),
@@ -83,11 +85,13 @@ CREATE TABLE Transactions
 )
 GO
 
-CREATE TABLE TransactionProduct
+CREATE TABLE TransactionProducts
 (
-	TransactionId INT NOT NULL,
+	TransactionProductId UNIQUEIDENTIFIER NOT NULL,
+	TransactionId UNIQUEIDENTIFIER NOT NULL,
     ProductId INT NOT NULL,
     Quantity INT NOT NULL,
+    PRIMARY KEY (TransactionProductId),
     FOREIGN KEY (TransactionId) REFERENCES Transactions(TransactionId),
 	FOREIGN KEY (ProductId) REFERENCES Products(ProductId),
 	CHECK (Quantity >= 1)
@@ -103,4 +107,48 @@ CREATE FUNCTION GetProductType (@ProductId INT) RETURNS TABLE
 AS
 RETURN
 	SELECT * FROM ProductTypes WHERE ProductTypeId = (SELECT ProductTypeId from Products WHERE ProductId = @ProductId);
+GO
+
+CREATE PROCEDURE PrintAssignment (@UserId UNIQUEIDENTIFIER, @Email VARCHAR(255))
+AS
+	IF dbo.IsValidEmail(@Email) = 1
+		PRINT 'User ' + @Email + ' assigned unique ID: ' + CAST(@UserId AS VARCHAR(255));
+	ELSE
+		PRINT 'User with an invalid email (' + @Email + ') assigned unique ID: ' + CAST(@UserId AS VARCHAR(255));
+GO
+
+CREATE TRIGGER NewUser ON Users
+FOR INSERT
+AS
+	DECLARE
+		@UserId UNIQUEIDENTIFIER,
+		@Email VARCHAR(255);
+	DECLARE insert_cursor CURSOR FOR SELECT * FROM inserted;
+	OPEN insert_cursor;
+	FETCH NEXT FROM insert_cursor into @UserId, @Email;
+	EXECUTE PrintAssignment @UserId, @Email;
+	CLOSE insert_cursor;
+	DEALLOCATE insert_cursor;
+GO
+
+CREATE or ALTER TRIGGER NewTransactionProduct ON TransactionProducts
+AFTER INSERT
+AS
+	DECLARE
+		@ProductId INT,
+		@Name NVARCHAR(300),
+		@Quantity INT,
+		@TransactionId UNIQUEIDENTIFIER,
+		@UserId UNIQUEIDENTIFIER,
+		@TransactionTime DATETIME,
+		@Email VARCHAR(255);
+	DECLARE insert_cursor CURSOR FOR SELECT p.ProductId, p.Name, Quantity, t.TransactionId, u.UserId, TransactionTime, Email FROM inserted i
+	join Transactions t on i.TransactionId = t.TransactionId
+	join Users u on t.UserId = u.UserId
+	join Products p on i.ProductId = p.ProductId;
+	OPEN insert_cursor;
+	FETCH NEXT FROM insert_cursor into @ProductId, @Name, @Quantity, @TransactionId, @UserId, @TransactionTime, @Email;
+	PRINT 'User ' + @Email + ' bought the following ' + CAST(@Quantity AS VARCHAR(255)) + ' items of type ' + @Name + ' on ' + CAST(@TransactionTime AS VARCHAR(255));
+	CLOSE insert_cursor;
+	EXECUTE DecreaseStock @ProductId, @Quantity;
 GO
