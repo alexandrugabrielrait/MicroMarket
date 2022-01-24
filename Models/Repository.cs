@@ -11,7 +11,9 @@ namespace MicroMarket.Models
 
         public void Save(T entity)
         {
-            GetSession().Save(entity);
+            var session = GetSession();
+            session.Save(entity);
+            session.Flush();
         }
 
         public T Get(int id)
@@ -26,17 +28,23 @@ namespace MicroMarket.Models
 
         public void Delete(T entity)
         {
-            GetSession().Delete(entity);
+            var session = GetSession();
+            session.Delete(entity);
+            session.Flush();
         }
 
         public void Update(T entity)
         {
-            GetSession().Update(entity);
+            var session = GetSession();
+            session.Update(entity);
+            session.Flush();
         }
 
         public void SaveOrUpdate(T entity)
         {
-            GetSession().SaveOrUpdate(entity);
+            var session = GetSession();
+            session.SaveOrUpdate(entity);
+            session.Flush();
         }
     }
 }

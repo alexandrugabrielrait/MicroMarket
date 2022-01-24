@@ -1,6 +1,6 @@
 ﻿@model List<Product>
 @{
-    ViewData[":-moz-anyitle"] = "Home Page";
+    ViewData["Title"] = "Browse";
 }
 
 <style>
@@ -36,7 +36,9 @@
             }
 
         .card .product-name {
+            align-self: center;
             height: 90px;
+            width: 90%;
         }
 
         .card .price {
@@ -79,19 +81,19 @@
     <br />
     @if (ViewBag.HTMLId > 0)
     {
-        <button type="button" onclick="location.href='@Url.Action("Page", "Browse", new { id = ViewBag.HTMLId - 1 })'">Previous Page</button>
+        <button type="button" class="btn btn-primary" onclick="location.href='@Url.Action("Page", "Browse", new { id = ViewBag.HTMLId - 1 })'">Previous Page</button>
     }
     else
     {
-        <button type="button" disabled>Previous Page</button>
+        <button type="button" class="btn btn-secondary" disabled>Previous Page</button>
     }
     @if (ViewBag.HTMLId < ViewBag.LastPageId)
     {
-        <button type="button" onclick="location.href='@Url.Action("Page", "Browse", new { id = ViewBag.HTMLId + 1 })'">Next Page</button>
+        <button type="button" class="btn btn-primary" onclick="location.href='@Url.Action("Page", "Browse", new { id = ViewBag.HTMLId + 1 })'">Next Page</button>
     }
     else
     {
-        <button type="button" disabled>Next Page</button>
+        <button type="button" class="btn btn-secondary" disabled>Next Page</button>
     }
 </div>
 <script>

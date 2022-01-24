@@ -1,0 +1,11 @@
+﻿<?xml version="1.0"?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" assembly="MicroMarket" namespace="MicroMarket.Models">
+
+	<class name="UserInfo" table="Users">
+		<id name="UserId">
+			<generator class="guid"/>
+		</id>
+		<property name="Email"/>
+	</class>
+
+</hibernate-mapping>

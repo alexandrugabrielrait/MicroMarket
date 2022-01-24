@@ -1,5 +1,6 @@
 ﻿using MicroMarket.Models;
 using MicroMarket.Utils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -9,17 +10,30 @@ namespace MicroMarket.Controllers
     {
         private readonly ILogger<CartController> _logger;
         private readonly IRepositoryManager _repositoryManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public CartController(ILogger<CartController> logger, IRepositoryManager repositoryManager)
+        public CartController(ILogger<CartController> logger,
+            IRepositoryManager repositoryManager,
+            SignInManager<IdentityUser> signInManager,
+            UserManager<IdentityUser> userManager
+            )
         {
             _logger = logger;
             _repositoryManager = repositoryManager;
+            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
         {
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
             return View(cart);
+        }
+        public IActionResult AddUser(string email)
+        {
+            _repositoryManager.AddUser(email);
+            return Index();
         }
 
         public int IndexOfProduct(int id)
@@ -119,16 +133,25 @@ namespace MicroMarket.Controllers
         public IActionResult Checkout()
         {
             RefreshCartProducts();
+            var errorMessage = "";
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
             foreach (var cartItem in cart)
             {
                 if (cartItem.Product.Stock < cartItem.Quantity)
                 {
-                    var errorMessage = "Error: Insufficient stock for " + cartItem.Product.Name + "!";
+                    errorMessage = "Error: Insufficient stock for " + cartItem.Product.Name + "!";
                     SessionHelper.SetObjectAsJson(HttpContext.Session, "errorMessage", errorMessage);
                     return Index();
                 }
             }
+            if(_signInManager.IsSignedIn(User) && User.Identity != null)
+            {
+                _repositoryManager.AddUser(User.Identity.Name);
+                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", new List<CartItem>());
+                return Index();
+            }
+            errorMessage = "Error: Not logged in!";
+            SessionHelper.SetObjectAsJson(HttpContext.Session, "errorMessage", errorMessage);
             return Index();
         }
 

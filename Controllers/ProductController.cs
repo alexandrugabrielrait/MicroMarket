@@ -18,10 +18,7 @@ namespace MicroMarket.Controllers
         public IActionResult Index(int id)
         {
             var product = ((IRepository<Product>)_repositoryManager.Get(typeof(Product))).Get(id);
-            ViewBag.ProductType = ((IRepository<ProductType>)_repositoryManager.Get(typeof(ProductType))).Get(product.ProductTypeId);
             return View(product);
-            //var products = _productRepository.GetAll();
-            //return View(products.Where(x => x.Id == id).FirstOrDefault());
         }
 
         public IActionResult Privacy()

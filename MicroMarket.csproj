@@ -15,6 +15,7 @@
     <None Remove="hibernate.cfg.xml" />
     <None Remove="NHibernateDB\Product.hbm.xml" />
     <None Remove="NHibernateDB\ProductType.hbm.xml" />
+    <None Remove="NHibernateDB\UserInfo.hbm.xml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="NHibernateDB\UserInfo.hbm.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="NHibernateDB\ProductType.hbm.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
@@ -40,6 +44,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="6.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.1" />
     <PackageReference Include="NHibernate" Version="5.3.10" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
