@@ -1,16 +1,11 @@
 ﻿<?xml version="1.0"?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" assembly="MicroMarket" namespace="MicroMarket.Models">
 
-	<class name="Product" table="Products">
-		<id name="ProductId">
+	<class name="ProductType" table="ProductTypes">
+		<id name="ProductTypeId">
 			<generator class="guid"/>
 		</id>
 		<property name="Name"/>
-		<property name="Price"/>
-		<property name="ProductTypeId"/>
-		<property name="Stock"/>
-		<property name="ImageSource"/>
-		<property name="Description"/>
 	</class>
 
 </hibernate-mapping>

@@ -7,13 +7,13 @@ namespace MicroMarket.Controllers
     public class BrowseController : Controller
     {
         private readonly ILogger<BrowseController> _logger;
-        private readonly IRepository<Product> _productRepository;
-        private int productsPerPage = 10;
+        private readonly IRepositoryManager _repositoryManager;
+        private const int productsPerPage = 4;
 
-        public BrowseController(ILogger<BrowseController> logger, IRepository<Product> productRepository)
+        public BrowseController(ILogger<BrowseController> logger, IRepositoryManager repositoryManager)
         {
             _logger = logger;
-            _productRepository = productRepository;
+            _repositoryManager = repositoryManager;
         }
 
         public IActionResult Index()
@@ -26,7 +26,7 @@ namespace MicroMarket.Controllers
             if (id < 0)
                 return RedirectToAction("Page", new { id = 0 });
 
-            var products = _productRepository.GetAll().Where(x => x.Name.StartsWith(startsWith));
+            var products = ((IRepository<Product>)_repositoryManager.Get(typeof(Product))).GetAll().Where(x => x.Name.StartsWith(startsWith));
             var lastPageId = products.Count() / productsPerPage;
             if (id > lastPageId)
                 return RedirectToAction("Page", new { id = lastPageId });

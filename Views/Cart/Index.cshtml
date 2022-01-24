@@ -4,36 +4,55 @@
 
     decimal totalPrice = 0;
     if (Model != null)
-        foreach (var cartItem in Model)
-            totalPrice += cartItem.Quantity * cartItem.Product.Price;
+        totalPrice = Model.Select(x => x.Quantity * x.Product.Price).Sum();
 }
 <style>
     .cart-item-table {
         width: 100%;
     }
 
+    .cart-item-name {
+        width: 30%;
+    }
+
+    .cart-item-description {
+        width: 30%;
+    }
+
+    .cart-item-price {
+        width: 10%;
+    }
+
+    .cart-item-input {
+        width: 20%;
+    }
+
+    .cart_item_quantity {
+        width: 30%;
+    }
+
     .checkout {
         text-align: center;
     }
 
-    .checkout button {
-        width: 25%;
-    }
+        .checkout button {
+            width: 25%;
+        }
 </style>
 @if (Model != null)
 {
     <form method="post" action="@Url.Action("Checkout", "Cart")">
-    <table class="cart-item-table">
-        @foreach (var cartItem in Model)
-        {
-            Html.RenderPartial("_cartItem", cartItem);
-        }
-    </table>
-    <br />
-    <div class="checkout">
-        <div>Total: @totalPrice.ToString("0.####")€</div>
-        <button type="submit" class="btn btn-primary">Checkout</button>
-    </div>
+        <table class="cart-item-table">
+            @foreach (var cartItem in Model)
+            {
+                Html.RenderPartial("_cartItem", cartItem);
+            }
+        </table>
+        <br />
+        <div class="checkout">
+            <div>Total: <span id="cart-total-price">@totalPrice.ToString("0.####")</span>€</div>
+            <button type="submit" class="btn btn-primary">Checkout</button>
+        </div>
     </form>
 }
 else
@@ -49,16 +68,18 @@ else
         .done(function(data) {
           setCartCount(data.count);
           $("#cart_item_" + id).remove();
+          $("#cart-total-price").text(data.totalPrice);
       });
       }
       $(".cart_item_quantity").on('input', function() {
-        val = $(this).val();
+        val = this.value = Math.floor(Math.max(1, Math.abs(this.value)));
+        console.log(val);
         id = $(this).attr("product-id");
         $.post("@(Url.ActionLink("SetProductQuantity", "Cart"))/" + id + "?quantity=" + val, function() {})
       .done(function(data) {
           setCartCount(data.count);
           $("#cart_item_" + id + "_total").text(data.productPrice);
-          $("this").val(data.quantity);
+          $("#cart-total-price").text(data.totalPrice);
       });
     });
 </script>

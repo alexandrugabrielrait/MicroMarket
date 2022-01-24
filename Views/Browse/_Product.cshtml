@@ -10,10 +10,20 @@
     Type @Model.ProductTypeId
     </td>
 </tr>*@
+@{
+    const int descLength = 120;
+    var description = Model == null ? "" : Model.Description ?? "";
+    if (description.Length > descLength)
+    {
+        description = description.Substring(0, descLength - 3) + "...";
+    }
+}
 <div class="card">
-  @*<img src="jeans3.jpg" alt="Denim Jeans" style="width:100%">*@
-  <strong>@Model.Name</strong>
+  <div class="product-image">
+    <img src="@(Model == null ? null : Model.ImageSource)" alt="Product Image">
+  </div>
+  <strong class="product-name"><a href=@Url.Action("Index", "Product", new { id = Model.ProductId })>@Model.Name</a></strong>
   <p class="price">@Model.Price.ToString("0.####")€</p>
-  <div class="description">@Model.Description</div>
+  <div class="description" title="@Model.Description">@description</div>
   <div><button type="button" class="btn btn-success" onclick="addProduct(@Model.ProductId)">Add to Cart</button></div>
 </div>

@@ -21,10 +21,10 @@
 </tr>*@
 <tr id="cart_item_@(Model.Product.ProductId)" class="cart-item text-black">
   @*<img src="jeans3.jpg" alt="Denim Jeans" style="width:100%">*@
-  <td><h2>@Model.Product.Name</h2></td>
-  <td><div class="description" style="width:300px">@description</div></td>
-  <td class="price" style="width:150px">Price: @Model.Product.Price.ToString("0.####")€</td>
-  <td class="price" style="width:150px">Total: <span id="cart_item_@(Model.Product.ProductId)_total">@((Model.Quantity * Model.Product.Price).ToString("0.####"))</span>€</td>
-  <td>@Html.TextBoxFor(x => x.Quantity, htmlAttributes : new { type = "number", min = "1", step = "1", @class = "cart_item_quantity", product_id=Model.Product.ProductId } )
+  <td class="cart-item-name"><h6><a href=@Url.Action("Index", "Product", new { id = Model.Product.ProductId })>@Model.Product.Name</a></h6></td>
+  <td class="cart-item-description"><div title="@Model.Product.Description">@description</div></td>
+  <td class="cart-item-price">Price: @Model.Product.Price.ToString("0.####")€</td>
+  <td class="cart-item-price">Total: <span id="cart_item_@(Model.Product.ProductId)_total">@((Model.Quantity * Model.Product.Price).ToString("0.####"))</span>€</td>
+  <td class="cart-item-input">@Html.TextBoxFor(x => x.Quantity, htmlAttributes : new { type = "number", min = "1", step = "1", @class = "cart_item_quantity", product_id=Model.Product.ProductId } )
   <button type="button" class="btn btn-danger" onclick="removeProduct(@Model.Product.ProductId)">x</button></td>
 </tr>

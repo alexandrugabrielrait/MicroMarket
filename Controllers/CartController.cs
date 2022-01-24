@@ -8,12 +8,12 @@ namespace MicroMarket.Controllers
     public class CartController : Controller
     {
         private readonly ILogger<CartController> _logger;
-        private readonly IRepository<Product> _productRepository;
+        private readonly IRepositoryManager _repositoryManager;
 
-        public CartController(ILogger<CartController> logger, IRepository<Product> productRepository)
+        public CartController(ILogger<CartController> logger, IRepositoryManager repositoryManager)
         {
             _logger = logger;
-            _productRepository = productRepository;
+            _repositoryManager = repositoryManager;
         }
 
         public IActionResult Index()
@@ -34,36 +34,33 @@ namespace MicroMarket.Controllers
         public void RefreshCartProducts()
         {
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
+            if (cart == null)
+            {
+                cart = new List<CartItem>();
+                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
+            }
             foreach (var cartItem in cart)
             {
-                cartItem.Product = _productRepository.Get(cartItem.Product.ProductId);
+                cartItem.Product = ((IRepository<Product>)_repositoryManager.Get(typeof(Product))).Get(cartItem.Product.ProductId);
             }
         }
 
         public IActionResult AddProduct(int id)
         {
             RefreshCartProducts();
-            var product = _productRepository.Get(id);
+            var product = ((IRepository<Product>)_repositoryManager.Get(typeof(Product))).Get(id);
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
-            if (cart == null)
+            int index = IndexOfProduct(id);
+            if (index != -1)
             {
-                cart = new List<CartItem>();
-                cart.Add(new CartItem(product));
-                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
+                cart[index].Quantity++;
             }
             else
             {
-                int index = IndexOfProduct(id);
-                if (index != -1)
-                {
-                    cart[index].Quantity++;
-                }
-                else
-                {
-                    cart.Add(new CartItem(product));
-                }
-                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
+                cart.Add(new CartItem(product));
             }
+            SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
+
             return new JsonResult(new { count = cart.Select(x => x.Quantity).Sum() });
         }
 
@@ -72,38 +69,32 @@ namespace MicroMarket.Controllers
             if (quantity <= 0)
                 return SetProductQuantity(id, 1);
             RefreshCartProducts();
-            var product = _productRepository.Get(id);
+            var product = ((IRepository<Product>)_repositoryManager.Get(typeof(Product))).Get(id);
             if (product == null)
                 return BadRequest();
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
             var cartCount = 0;
-            if (cart == null)
+            decimal totalPrice = 0;
+            int index = IndexOfProduct(id);
+            if (index != -1)
             {
-                cart = new List<CartItem>();
-                cart.Add(new CartItem(product));
-                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
+                cart[index].Quantity = quantity;
+                if (cart[index].Quantity == 0)
+                {
+                    cart.RemoveAt(index);
+                }
             }
-            else
+            else if (quantity != 0)
             {
-                int index = IndexOfProduct(id);
-                if (index != -1)
-                {
-                    cart[index].Quantity = quantity;
-                    if (cart[index].Quantity == 0)
-                    {
-                        cart.RemoveAt(index);
-                    }
-                }
-                else if (quantity != 0)
-                {
-                    var cartItem = new CartItem(product);
-                    cartItem.Quantity = quantity;
-                    cart.Add(cartItem);
-                }
-                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
-                cartCount = cart.Select(x => x.Quantity).Sum();
+                var cartItem = new CartItem(product);
+                cartItem.Quantity = quantity;
+                cart.Add(cartItem);
             }
-            return new JsonResult(new { count = cartCount, productPrice = (quantity * product.Price).ToString("0.####"), quantity = quantity });
+            SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
+            cartCount = cart.Select(x => x.Quantity).Sum();
+            totalPrice = cart.Select(x => x.Quantity * x.Product.Price).Sum();
+
+            return new JsonResult(new { count = cartCount, productPrice = (quantity * product.Price).ToString("0.####"), quantity = quantity, totalPrice = totalPrice.ToString("0.####") });
         }
 
         public IActionResult RemoveProduct(int id)
@@ -111,18 +102,18 @@ namespace MicroMarket.Controllers
             RefreshCartProducts();
             var cart = SessionHelper.GetObjectFromJson<List<CartItem>>(HttpContext.Session, "cart");
             var cartCount = 0;
-            if (cart != null)
+            decimal totalPrice = 0;
+            int index = IndexOfProduct(id);
+            if (index == -1)
             {
-                int index = IndexOfProduct(id);
-                if (index == -1)
-                {
-                    return BadRequest();
-                }
-                cart.RemoveAt(index);
-                SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
-                cartCount = cart.Select(x => x.Quantity).Sum();
+                return BadRequest();
             }
-            return new JsonResult(new { count = cartCount });
+            cart.RemoveAt(index);
+            SessionHelper.SetObjectAsJson(HttpContext.Session, "cart", cart);
+            cartCount = cart.Select(x => x.Quantity).Sum();
+            totalPrice = cart.Select(x => x.Quantity * x.Product.Price).Sum();
+
+            return new JsonResult(new { count = cartCount, totalPrice = totalPrice.ToString("0.####") });
         }
 
         public IActionResult Checkout()
@@ -138,7 +129,7 @@ namespace MicroMarket.Controllers
                     return Index();
                 }
             }
-            return View();
+            return Index();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -2,13 +2,65 @@
 @{
     ViewData["Title"] = "Home Page";
 }
+@{
+    var description = Model.Description ?? "This product does not have a description.";
+}
+<style>
+    .product-page .product-image {
+            width: 100%;
+            height: 600px;
+            text-align:center
+        }
 
+            .product-page .product-image img {
+                max-height: 100%;
+                max-width: 100%;
+                width: auto;
+                height: auto;
+            }
+
+        .product-page .product-name {
+            height: 90px;
+        }
+
+        .product-page .price {
+            color: grey;
+            font-size: 22px;
+        }
+
+        .product-page .description {
+            text-align: left;
+        }
+
+        .product-page button {
+            border: none;
+            outline: 0;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 10px;
+            height: 100%;
+            width: 25%;
+        }
+
+            .product-page button:hover {
+                opacity: 0.7;
+            }
+</style>
 <div class="text-center">
-    <h1 class="display-4">Welcome to product</h1>
     @if (Model != null)
     {
-        <p>Product id is: @(Model.Name).</p>
-        <p>@Model.Description</p>
+        <div class="product-page">
+            <div class="product-image">
+                <img src="@(Model == null ? null : Model.ImageSource)" alt="Product Image">
+            </div>
+            <strong class="product-name">@Model.Name</strong>
+            <p class="price">@Model.Price.ToString("0.####")€</p>
+            <div>Cateogry: @ViewBag.ProductType.Name</div>
+            <div class="description" style="border-style: groove" title="@description">@description</div>
+            <br />
+            <div class="text-center"><button type="button" class="btn btn-success" onclick="addProduct(@Model.ProductId)">Add to Cart</button></div>
+        </div>
     }
     else
     {
