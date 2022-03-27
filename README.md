@@ -5,4 +5,4 @@ Year 4, Semester 1
 
 Homework project for Databases 2 Course.
 Implementation of an online store for microcontroller components.
-Written in C# (ASP.NET). Uses Microsoft SQL Server through NHibernate.
+Written in C# (ASP.NET). Connects to Microsoft SQL Server through NHibernate.
